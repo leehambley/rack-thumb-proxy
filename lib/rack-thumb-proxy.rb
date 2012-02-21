@@ -1,4 +1,8 @@
-require "rack-thumb-proxy/version"
+require 'CGI'
+require 'open-uri'
+require 'tempfile'
+require 'rack-thumb-proxy/version'
+require 'rack-thumb-proxy/configuration'
 
 module Rack
 
@@ -19,52 +23,111 @@ module Rack
           @configuration ||= Configuration.new
         end
 
+        def call(env)
+          new(env).call
+        end
+
       end
 
-      class Configuration
-
-        attr_accessor :key_length
-        attr_accessor :mount_point
-
-        attr_reader   :option_labels
-
-        def initialize
-          initialize_defaults!
-        end
-
-        def mount_point(new_mount_point = nil)
-          @mount_point = new_mount_point if new_mount_point
-          return @mount_point
-        end
-
-        def key_length(new_key_length = nil)
-          @key_length = new_key_length if new_key_length
-          return @key_length
-        end
-
-        def secret(new_secret = nil)
-          @secret = new_secret if new_secret
-          return @secret
-        end
-
-        def option_label(label, options)
-          option_labels.merge!(label.to_sym => options)
-        end
-
-        def hash_signatures_in_use?
-          !!@secret
-        end
-
-        def initialize_defaults!
-          @secret        = nil
-          @key_length    = 10
-          @mount_point   = '/'
-          @option_labels = {}
-        end
-        alias :reset_defaults! :initialize_defaults!
-        private :initialize_defaults!
-
+      def initialize(env)
+        @env  = env
+        @path = env['PATH_INFO']
       end
+
+      def call
+        if request_matches?
+          validate_signature! &&
+          retreive_upstream!  &&
+          transform_image!    &&
+          format_response!
+          response.finish
+        else
+          [404, {'Content-Length' => 9}, ['Not Found']]
+        end
+      end
+
+      private
+
+        def handle_request
+          response
+        end
+
+        def validate_signature!
+          true
+        end
+
+        def retreive_upstream!
+          begin
+            open(request_url, 'rb') do |f|
+              tempfile.write(f.read)
+              tempfile.flush
+            end
+          rescue
+            response.status = 500
+            response.body   << $!.message
+            return false
+          end
+          return true
+        end
+
+        def format_response!
+          response.status = 200
+          response.headers["Content-Length"] = transformed_image_file_size_in_bytes
+          true
+        end
+
+        def tempfile(&bock)
+          @_tempfile ||= Tempfile.new(escaped_request_url)
+        end
+
+        def transform_image!
+          true
+        end
+
+        def should_verify_hash_signature?
+          configuration.hash_signatures_in_use?
+        end
+
+        def configuration
+          self.class.configuration
+        end
+
+        def request_hash_signature
+          @_request_match_data["hash_signature"]
+        end
+
+        def request_options
+          @_request_match_data["options"]
+        end
+
+        def request_gravity
+          @_request_match_data["gravity"]
+        end
+
+        def request_url
+          CGI.unescape(escaped_request_url)
+        end
+
+        def escaped_request_url
+          @_request_match_data["escaped_url"]
+        end
+
+        def request_matches?
+          @_request_match_data = @path.match(routing_pattern)
+        end
+
+        def transformed_image_file_size_in_bytes
+          ::File.size(tempfile)
+        end
+
+        # Examples: http://rubular.com/r/oPRK1t31yv
+        def routing_pattern
+          /^\/(?<hash_signature>[a-z0-9]{10}|)\/?(?<options>(:?[0-9]*x+[0-9]*(?<gravity>c|n|ne|e|s|sw|w|nw|)|))\/?(?<escaped_url>https?.*)$/
+        end
+
+        def response
+          @_response ||= Rack::Response.new
+        end
 
     end
 

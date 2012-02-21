@@ -163,6 +163,17 @@ One complication is that when using the link generator functions, one
 **must** use the configuration API, otherwise the default path will be
 `/`.
 
+## ToDo
+
+ * Implement Railtie/helpers
+ * Ensure the hash signatures are checked
+ * Make it possible to control the cache control header
+ * Don't use open-uri
+ * Take the cache-control headers from upstream
+   if we can
+ * Allow a local cache for the images, perhaps somewhere
+   in `/tmp`
+
 ## Contributing
 
 1. Fork it
