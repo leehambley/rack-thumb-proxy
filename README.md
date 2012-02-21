@@ -105,7 +105,9 @@ One can use the configuration API as such to name a label:
 
 Gravity can be specified which will pull the crop (in the case that both
 width, and height are given), it will focus the cropped area of the
-image, valid options are `n`, `ne`, `e`, `se`, `s`, `sw`, `w`, `nw`a
+image, valid options are `n`, `ne`, `e`, `se`, `s`, `sw`, `w`, `nw`. The
+default gracity is `c`, which will focus the crop on the centre of the
+image.
 
 ## No Magic
 
@@ -133,10 +135,10 @@ Or install it yourself as:
 The included railtie will ensure that this is available in your Rails
 application, you can simply use something like:
 
-   match '/media', :to => Rack::Thumb::Proxy
+    match '/media', :to => Rack::Thumb::Proxy
 
 If you need to configure additional options, this can be done in an
-initializer, or by passing a configuration hash to the
+initializer, or by passing a configuaation hash to the
 Rack::Thumb::Proxy initialzer. The former is preferred.
 
 ## Example Configuration

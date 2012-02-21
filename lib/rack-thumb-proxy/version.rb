@@ -1,6 +1,6 @@
 module Rack
   module Thumb
-    module Proxy
+    class Proxy
       VERSION = "0.0.1"
     end
   end
