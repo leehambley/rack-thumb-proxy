@@ -21,7 +21,6 @@ module Rack
 
       end
 
-
       class Configuration
 
         attr_accessor :key_length
@@ -30,10 +29,7 @@ module Rack
         attr_reader   :option_labels
 
         def initialize
-          @secret        = nil
-          @key_length    = 10
-          @mount_point   = '/'
-          @option_labels = {}
+          initialize_defaults!
         end
 
         def mount_point(new_mount_point = nil)
@@ -59,9 +55,19 @@ module Rack
           !!@secret
         end
 
+        def initialize_defaults!
+          @secret        = nil
+          @key_length    = 10
+          @mount_point   = '/'
+          @option_labels = {}
+        end
+        alias :reset_defaults! :initialize_defaults!
+        private :initialize_defaults!
+
       end
 
     end
 
   end
+
 end
