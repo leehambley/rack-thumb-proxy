@@ -48,10 +48,6 @@ module Rack
 
       private
 
-        def handle_request
-          response
-        end
-
         def validate_signature!
           true
         end
@@ -63,8 +59,7 @@ module Rack
               tempfile.flush
             end
           rescue
-            response.status = 500
-            response.body   << $!.message
+            write_error_to_response!
             return false
           end
           return true
@@ -73,14 +68,30 @@ module Rack
         def format_response!
           response.status = 200
           response.headers["Content-Length"] = transformed_image_file_size_in_bytes
+          response.body << read_tempfile
           true
         end
 
-        def tempfile(&bock)
+        def read_tempfile
+          tempfile.rewind
+          tempfile.read
+        end
+
+        def tempfile
           @_tempfile ||= Tempfile.new(escaped_request_url)
         end
 
         def transform_image!
+          return true if request_options.empty?
+          begin
+            require 'mini_magick'
+            mmi = MiniMagick::Image.open(tempfile.path)
+            mmi.resize(request_options)
+            mmi.write tempfile.path
+          rescue
+            write_error_to_response!
+            return false
+          end
           true
         end
 
@@ -101,6 +112,20 @@ module Rack
         end
 
         def request_gravity
+          {
+            'nw' => :northwest,
+            'n'  => :north,
+            'ne' => :northeast,
+            'w'  => :west,
+            'c'  => :center,
+            'e'  => :east,
+            'sw' => :southwest,
+            's'  => :south,
+            'se' => :southeast
+          }.fetch(request_gravity_shorthand, nil) if request_gravity_shorthand
+        end
+
+        def request_gravity_shorthand
           @_request_match_data["gravity"]
         end
 
@@ -117,16 +142,21 @@ module Rack
         end
 
         def transformed_image_file_size_in_bytes
-          ::File.size(tempfile)
+          ::File.size(tempfile.path)
         end
 
         # Examples: http://rubular.com/r/oPRK1t31yv
         def routing_pattern
-          /^\/(?<hash_signature>[a-z0-9]{10}|)\/?(?<options>(:?[0-9]*x+[0-9]*(?<gravity>c|n|ne|e|s|sw|w|nw|)|))\/?(?<escaped_url>https?.*)$/
+          /^\/(?<hash_signature>[a-z0-9]{10}|)\/?(?<options>(:?[0-9]*x+[0-9]*|))(?<gravity>c|n|ne|e|s|sw|w|nw|)\/?(?<escaped_url>https?.*)$/
         end
 
         def response
           @_response ||= Rack::Response.new
+        end
+
+        def write_error_to_response!
+          response.status = 500
+          response.body   << $!.message
         end
 
     end

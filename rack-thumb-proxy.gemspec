@@ -22,5 +22,7 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency 'minitest', '~> 2.11'
   gem.add_development_dependency 'webmock', '~> 1.8.0'
   gem.add_development_dependency 'rack-test', '~> 0.6.1'
+  gem.add_development_dependency 'dimensions'
+  gem.add_development_dependency 'mini_magick'
 
 end

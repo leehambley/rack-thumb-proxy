@@ -163,16 +163,20 @@ One complication is that when using the link generator functions, one
 **must** use the configuration API, otherwise the default path will be
 `/`.
 
-## ToDo
+## To Do
 
- * Implement Railtie/helpers
- * Ensure the hash signatures are checked
- * Make it possible to control the cache control header
- * Don't use open-uri
+ * Implement Railtie/helpers.
+ * Ensure the hash signatures are checked.
+ * Make it possible to control the cache control header.
+ * Don't use open-uri.
+ * Check earlier in the process that upstream is an image,
+   don't rely on MiniMagick to blow up on non-image content.
  * Take the cache-control headers from upstream
-   if we can
+   if we can.
  * Allow a local cache for the images, perhaps somewhere
-   in `/tmp`
+   in `/tmp`.
+ * Actually support option labels, it just looks good in 
+   the readme right now, alas.
 
 ## Contributing
 
