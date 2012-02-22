@@ -1,4 +1,4 @@
-require 'CGI'
+require 'cgi'
 require 'open-uri'
 require 'tempfile'
 require 'rack-thumb-proxy/version'
