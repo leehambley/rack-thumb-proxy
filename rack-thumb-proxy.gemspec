@@ -5,8 +5,8 @@ Gem::Specification.new do |gem|
 
   gem.authors       = ["Lee Hambley"]
   gem.email         = ["lee.hambley@gmail.com"]
-  gem.description   = %q{TODO: Write a gem description}
-  gem.summary       = %q{TODO: Write a gem summary}
+  gem.description   = %q{ Rack middleware for resizing proxied requests for images which don't reside on your own servers. }
+  gem.summary       = %q{ For more information see https://github.com/leehambley/rack-thumb-proxy }
   gem.homepage      = ""
 
   gem.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
@@ -22,7 +22,7 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency 'minitest', '~> 2.11'
   gem.add_development_dependency 'webmock', '~> 1.8.0'
   gem.add_development_dependency 'rack-test', '~> 0.6.1'
+  gem.add_development_dependency 'mapel'
   gem.add_development_dependency 'dimensions'
-  gem.add_development_dependency 'mini_magick'
 
 end

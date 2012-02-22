@@ -14,8 +14,8 @@ class TestRackThumbProxy < MiniTest::Unit::TestCase
   end
 
   def test_it_should_return_success_with_the_correct_content_length_when_a_matching_url_is_found_for_a_noop_image
-    stub_image_request!('250x.gif', 'http://www.example.com/images/kittens.gif')
-    get '/' + escape('http://www.example.com/images/kittens.gif')
+    stub_image_request!('250x.gif', 'http://www.example.com/images/noop-kittens.gif')
+    get '/' + escape('http://www.example.com/images/noop-kittens.gif')
     assert last_response.ok?
     assert_equal file_size_for_fixture('250x.gif').to_s, last_response.headers.fetch('Content-Length')
     assert_equal file_hash_for_fixture('250x.gif'), file_hash_from_string(last_response.body)
@@ -29,6 +29,13 @@ class TestRackThumbProxy < MiniTest::Unit::TestCase
     assert_dimensions last_response.body, 50, 50
   end
 
+  def test_it_should_crop_when_the_ratio_cannot_be_maintained
+    stub_image_request!('200x100.gif', 'http://www.example.com/images/sharkjumping.gif')
+    get '/50x50/' + escape('http://www.example.com/images/sharkjumping.gif')
+    assert last_response.ok?
+    assert_dimensions last_response.body, 50, 50
+  end
+
   def test_it_should_retain_the_aspec_ratio
     stub_image_request!('200x100.gif', 'http://www.example.com/images/sharkjumping.gif')
     get '/50x/' + escape('http://www.example.com/images/sharkjumping.gif')
@@ -37,7 +44,6 @@ class TestRackThumbProxy < MiniTest::Unit::TestCase
   end
 
   def test_it_should_accept_the_gravity_setting_without_breaking_the_resize
-    skip
     stub_image_request!('200x100.gif', 'http://www.example.com/images/sharkjumping.gif')
     get '/50x50e/' + escape('http://www.example.com/images/sharkjumping.gif')
     assert last_response.ok?
@@ -46,6 +52,10 @@ class TestRackThumbProxy < MiniTest::Unit::TestCase
     assert last_response.ok?
     west = last_response.body
     refute_equal file_hash_from_string(east), file_hash_from_string(west)
+  end
+
+  def test_should_respond_with_the_proper_mimetype
+
   end
 
   private

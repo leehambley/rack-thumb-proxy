@@ -42,7 +42,7 @@ module Rack
           format_response!
           response.finish
         else
-          [404, {'Content-Length' => 9}, ['Not Found']]
+          [404, {'Content-Length' => 9.to_s, 'Content-Type' => 'text/plain'}, ['Not Found']]
         end
       end
 
@@ -55,6 +55,7 @@ module Rack
         def retreive_upstream!
           begin
             open(request_url, 'rb') do |f|
+              tempfile.binmode
               tempfile.write(f.read)
               tempfile.flush
             end
@@ -67,7 +68,8 @@ module Rack
 
         def format_response!
           response.status = 200
-          response.headers["Content-Length"] = transformed_image_file_size_in_bytes
+          response.headers["Content-Type"] = mime_type_from_request_url
+          response.headers["Content-Length"] = transformed_image_file_size_in_bytes.to_s
           response.body << read_tempfile
           true
         end
@@ -78,21 +80,55 @@ module Rack
         end
 
         def tempfile
-          @_tempfile ||= Tempfile.new(escaped_request_url)
+          @_tempfile ||= Tempfile.new('rack_thumb_proxy')
+        end
+
+        def tempfile_path
+          tempfile.path
         end
 
         def transform_image!
-          return true if request_options.empty?
+
+          return true unless should_resize?
+
           begin
-            require 'mini_magick'
-            mmi = MiniMagick::Image.open(tempfile.path)
-            mmi.resize(request_options)
-            mmi.write tempfile.path
+            require 'mapel'
+
+            width, height   = dimensions_from_request_options
+            owidth, oheight = dimensions_from_tempfile
+
+            width  = [width,  owidth].min  if width
+            height = [height, oheight].min if height
+
+            cmd = Mapel(tempfile_path)
+
+            if should_apply_gravity?
+              cmd.gravity(request_gravity)
+            end
+
+            if width && height
+              cmd.resize!(width, height)
+            else
+              cmd.resize(width, height, 0, 0, '>')
+            end
+
+            cmd.to(tempfile_path).run
+
           rescue
+            puts $!, $@
             write_error_to_response!
             return false
           end
+
           true
+        end
+
+        def should_resize?
+          !request_options.empty?
+        end
+
+        def should_apply_gravity?
+          !!request_gravity_shorthand
         end
 
         def should_verify_hash_signature?
@@ -122,11 +158,12 @@ module Rack
             'sw' => :southwest,
             's'  => :south,
             'se' => :southeast
-          }.fetch(request_gravity_shorthand, nil) if request_gravity_shorthand
+          }.fetch(request_gravity_shorthand).to_s if request_gravity_shorthand
         end
 
         def request_gravity_shorthand
-          @_request_match_data["gravity"]
+          g = @_request_match_data["gravity"]
+          g.empty? ? nil : g
         end
 
         def request_url
@@ -141,8 +178,34 @@ module Rack
           @_request_match_data = @path.match(routing_pattern)
         end
 
+        def witdh_from_tempfile
+          dimensions_from_tempfile.first
+        end
+
+        def height_from_tempfile
+          dimensions_from_tempfile.last
+        end
+
+        def dimensions_from_tempfile
+          require 'mapel' unless defined?(Mapel)
+          Mapel.info(tempfile_path)[:dimensions]
+        end
+
+        def width_from_request_options
+          dimensions_from_request_options.first
+        end
+
+        def height_from_request_options
+          dimensions_from_request_options.last
+        end
+
+        def dimensions_from_request_options
+          width, height = request_options.split('x').map(&:to_i).collect { |dim| dim == 0 ? nil : dim }
+          [width, height]
+        end
+
         def transformed_image_file_size_in_bytes
-          ::File.size(tempfile.path)
+          ::File.size(tempfile_path)
         end
 
         # Examples: http://rubular.com/r/oPRK1t31yv
@@ -156,7 +219,23 @@ module Rack
 
         def write_error_to_response!
           response.status = 500
+          response.headers['Content-Type'] = 'text/plain'
           response.body   << $!.message
+          response.body   << "\n\n"
+          response.body   << $!.backtrace.join("\n")
+        end
+
+        def request_url_file_extension
+          ::File.extname(request_url)
+        end
+
+        def mime_type_from_request_url
+          {
+            '.png' => 'image/png',
+            '.gif' => 'image/gif',
+            '.jpg' => 'image/jpg',
+            '.jpeg' => 'image/jpeg'
+          }.fetch(request_url_file_extension)
         end
 
     end

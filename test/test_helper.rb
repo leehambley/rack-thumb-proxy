@@ -20,4 +20,4 @@ require 'webmock/minitest'
 WebMock.disable_net_connect!
 
 require 'ruby-debug'
-require 'mini_magick'
+require 'mapel'
