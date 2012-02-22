@@ -238,7 +238,7 @@ module Rack
             '.gif' => 'image/gif',
             '.jpg' => 'image/jpg',
             '.jpeg' => 'image/jpeg'
-          }.fetch(request_url_file_extension)
+          }.fetch(request_url_file_extension, 'application/octet-stream')
         end
 
     end

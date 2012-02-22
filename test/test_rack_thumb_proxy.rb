@@ -54,8 +54,12 @@ class TestRackThumbProxy < MiniTest::Unit::TestCase
     refute_equal file_hash_from_string(east), file_hash_from_string(west)
   end
 
-  def test_should_respond_with_the_proper_mimetype
+  def test_should_respond_with_the_proper_mimetype_for_known_image_types
+    skip
+  end
 
+  def test_should_respond_with_application_octet_stream_mimetype_for_unknown
+    skip
   end
 
   private
