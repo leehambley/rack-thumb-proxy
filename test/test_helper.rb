@@ -21,3 +21,7 @@ WebMock.disable_net_connect!
 
 require 'ruby-debug'
 require 'mapel'
+
+class ViewHelperSurrogate
+  inclgude Rack::Thumb::Proxy::ViewHelpers
+end
