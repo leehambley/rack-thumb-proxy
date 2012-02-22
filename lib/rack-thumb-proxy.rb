@@ -105,11 +105,8 @@ module Rack
 
             cmd = Mapel(tempfile_path)
 
-            if should_apply_gravity?
-              cmd.gravity(request_gravity)
-            end
-
             if width && height
+              cmd.gravity(request_gravity)
               cmd.resize!(width, height)
             else
               cmd.resize(width, height, 0, 0, '>')
@@ -128,10 +125,6 @@ module Rack
 
         def should_resize?
           !request_options.empty?
-        end
-
-        def should_apply_gravity?
-          !!request_gravity_shorthand
         end
 
         def should_verify_hash_signature?
@@ -161,12 +154,11 @@ module Rack
             'sw' => :southwest,
             's'  => :south,
             'se' => :southeast
-          }.fetch(request_gravity_shorthand).to_s if request_gravity_shorthand
+          }.fetch(request_gravity_shorthand, :center)
         end
 
         def request_gravity_shorthand
-          g = @_request_match_data["gravity"]
-          g.empty? ? nil : g
+           @_request_match_data["gravity"]
         end
 
         def request_url
@@ -234,9 +226,9 @@ module Rack
 
         def mime_type_from_request_url
           {
-            '.png' => 'image/png',
-            '.gif' => 'image/gif',
-            '.jpg' => 'image/jpg',
+            '.png'  => 'image/png',
+            '.gif'  => 'image/gif',
+            '.jpg'  => 'image/jpeg',
             '.jpeg' => 'image/jpeg'
           }.fetch(request_url_file_extension, 'application/octet-stream')
         end

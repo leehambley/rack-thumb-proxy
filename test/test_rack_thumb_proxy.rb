@@ -54,6 +54,15 @@ class TestRackThumbProxy < MiniTest::Unit::TestCase
     refute_equal file_hash_from_string(east), file_hash_from_string(west)
   end
 
+  def test_default_gravity_is_center_when_cropping
+    stub_image_request!('200x100.gif', 'http://www.example.com/images/sharkjumping.gif')
+    get '/75x75/' + escape('http://www.example.com/images/sharkjumping.gif')
+    no_gravity = last_response.body
+    get '/75x75c/' + escape('http://www.example.com/images/sharkjumping.gif')
+    c_gravity = last_response.body
+    assert_equal file_hash_from_string(no_gravity), file_hash_from_string(c_gravity)
+  end
+
   def test_should_respond_with_the_proper_mimetype_for_known_image_types
     skip
   end

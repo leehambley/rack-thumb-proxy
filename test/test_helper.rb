@@ -23,5 +23,5 @@ require 'ruby-debug'
 require 'mapel'
 
 class ViewHelperSurrogate
-  inclgude Rack::Thumb::Proxy::ViewHelpers
+  include Rack::Thumb::Proxy::ViewHelpers
 end
