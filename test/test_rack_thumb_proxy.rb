@@ -75,11 +75,11 @@ class TestRackThumbProxy < MiniTest::Unit::TestCase
 
     def stub_image_request!(file, url)
       stub_request(:any, url).to_return(
-        body: File.read(filename_for_fixture(file)),
-        headers: {
+        :body => File.read(filename_for_fixture(file)),
+        :headers => {
           'Content-Length' => file_size_for_fixture(file)
         },
-        status: 200
+        :status => 200
       )
     end
 

@@ -136,11 +136,11 @@ module Rack
         end
 
         def request_hash_signature
-          @_request_match_data["hash_signature"]
+          @_request_match_data[1]
         end
 
         def request_options
-          @_request_match_data["options"]
+          @_request_match_data[2]
         end
 
         def request_gravity
@@ -158,7 +158,7 @@ module Rack
         end
 
         def request_gravity_shorthand
-           @_request_match_data["gravity"]
+           @_request_match_data[3]
         end
 
         def request_url
@@ -166,7 +166,7 @@ module Rack
         end
 
         def escaped_request_url
-          @_request_match_data["escaped_url"]
+          @_request_match_data[4]
         end
 
         def request_matches?
@@ -205,7 +205,7 @@ module Rack
 
         # Examples: http://rubular.com/r/oPRK1t31yv
         def routing_pattern
-          /^\/(?<hash_signature>[a-z0-9]{10}|)\/?(?<options>(:?[0-9]*x+[0-9]*|))(?<gravity>c|n|ne|e|s|sw|w|nw|)\/?(?<escaped_url>https?.*)$/
+          /^\/([a-z0-9]{10}|)\/?(:?[0-9]*x+[0-9]*|)(c|n|ne|e|s|sw|w|nw|)\/?(https?.*)$/
         end
 
         def response
