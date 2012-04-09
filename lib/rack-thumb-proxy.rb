@@ -5,7 +5,8 @@ require 'rack-thumb-proxy/version'
 require 'rack-thumb-proxy/configuration'
 require 'rack-thumb-proxy/view_helpers'
 
-require 'rack-thumb-proxy/railtie' if defined?(Rails)
+require 'rack-thumb-proxy/railtie' if defined?(Rails::Railtie)
+require 'rack-thumb-proxy/rails2' if defined?(Rails::VERSION::MAJOR) and Rails::VERSION::MAJOR == 2
 
 module Rack
 
