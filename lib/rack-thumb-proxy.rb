@@ -73,6 +73,7 @@ module Rack
           response.status = 200
           response.headers["Content-Type"] = mime_type_from_request_url
           response.headers["Content-Length"] = transformed_image_file_size_in_bytes.to_s
+          response.headers.merge! configuration.cache_control_headers
           response.body << read_tempfile
           true
         end
