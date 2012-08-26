@@ -56,15 +56,10 @@ module Rack
         end
 
         def retreive_upstream!
-          begin
-            open(request_url, 'rb') do |f|
-              tempfile.binmode
-              tempfile.write(f.read)
-              tempfile.flush
-            end
-          rescue
-            write_error_to_response!
-            return false
+          open(request_url, 'rb') do |f|
+            tempfile.binmode
+            tempfile.write(f.read)
+            tempfile.flush
           end
           return true
         end
@@ -94,33 +89,27 @@ module Rack
 
           return true unless should_resize?
 
-          begin
-            require 'mapel'
+          require 'mapel'
 
-            width, height   = dimensions_from_request_options
-            owidth, oheight = dimensions_from_tempfile
+          width, height   = dimensions_from_request_options
+          owidth, oheight = dimensions_from_tempfile
 
-            width  = [width,  owidth].min  if width
-            height = [height, oheight].min if height
+          width  = [width,  owidth].min  if width
+          height = [height, oheight].min if height
 
-            cmd = Mapel(tempfile_path)
+          cmd = Mapel(tempfile_path)
 
-            if width && height
-              cmd.gravity(request_gravity)
-              cmd.resize!(width, height)
-            else
-              cmd.resize(width, height, 0, 0, '>')
-            end
-
-            cmd.to(tempfile_path).run
-
-          rescue
-            puts $!, $@
-            write_error_to_response!
-            return false
+          if width && height
+            cmd.gravity(request_gravity)
+            cmd.resize!(width, height)
+          else
+            cmd.resize(width, height, 0, 0, '>')
           end
 
+          cmd.to(tempfile_path).run
+
           true
+
         end
 
         def should_resize?
